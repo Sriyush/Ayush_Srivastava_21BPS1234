@@ -50,10 +50,10 @@ class GameBoard:
 
     def create_ui(self):
         self.root.title("Chess Game")
-        # player_b_label = tk.Label(self.root, text="Player B", font=("Arial", 16))
+        player_b_label = tk.Label(self.root, text="Player B", font=("Arial", 16))
         # player_b_label.pack(pady=10)
         self.create_board()
-        # player_a_label = tk.Label(self.root, text="Player A", font=("Arial", 16))
+        player_a_label = tk.Label(self.root, text="Player A", font=("Arial", 16))
         # player_a_label.pack(pady=10)
         self.create_move_history()
         self.create_exit_button()
