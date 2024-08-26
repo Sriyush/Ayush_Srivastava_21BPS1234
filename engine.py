@@ -4,11 +4,11 @@ import threading
 import json
 
 class GameBoard:
-    def __init__(self, root, host='localhost', port=12346):
+    def __init__(self, root, host='localhost', port=12346,player_board=None):
         self.host = host
         self.port = port
         self.root = root
-        self.board = [
+        self.board = player_board if player_board is not None else [
             ["bP", "bH1", "bP", "bH2", "bP"],
             ["--", "--", "--", "--", "--"],
             ["--", "--", "--", "--", "--"],
@@ -30,11 +30,45 @@ class GameBoard:
         self.receive_thread = threading.Thread(target=self.receive_messages)
         self.receive_thread.start()
 
+    def initialize_board(self, player_setup=None):
+        if player_setup:
+            if self.player_color == 'w':
+                self.board[4] = player_setup 
+                self.board[0] = [piece.replace('w', 'b') for piece in player_setup]
+            elif self.player_color == 'b':
+                self.board[0] = player_setup 
+                self.board[4] = [piece.replace('b', 'w') for piece in player_setup]
+        self.send_initial_board_to_server()
+
+
+
+    def send_initial_board_to_server(self):
+        setup_message = json.dumps({'initial_board': self.board})
+        self.client_socket.send(setup_message.encode('utf-8'))
+        print("Initial board setup sent to server.")
+
+
     def create_ui(self):
         self.root.title("Chess Game")
+        # player_b_label = tk.Label(self.root, text="Player B", font=("Arial", 16))
+        # player_b_label.pack(pady=10)
         self.create_board()
+        # player_a_label = tk.Label(self.root, text="Player A", font=("Arial", 16))
+        # player_a_label.pack(pady=10)
         self.create_move_history()
-    
+        self.create_exit_button()
+    def create_exit_button(self):
+        self.exit_button = tk.Button(self.root, text="Exit", font=("Arial", 16), command=self.exit_game)
+        self.exit_button.grid(row=6, column=0, columnspan=5, pady=10)
+
+    def exit_game(self):
+        try:
+            self.client_socket.close()
+            print("Connection closed.")
+        except Exception as e:
+            print(f"Error closing connection: {e}")
+        finally:
+            self.root.quit()
     def create_board(self):
         self.labels = [[None for _ in range(5)] for _ in range(5)]
         for r in range(5):
